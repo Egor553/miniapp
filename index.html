@@ -178,9 +178,10 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        // Функция для открытия чата с ботом и выполнения команды /start
+        // Функция для открытия чата с ботом и выполнения команды /start с уникальным параметром
         function openChat() {
-            tg.openTelegramLink('https://t.me/fipiBAink228_bot?start');
+            const timestamp = Date.now(); // Уникальная временная метка
+            tg.openTelegramLink(`https://t.me/fipiBAink228_bot?start=reset_${timestamp}`);
         }
 
         // Функции для отображения модальных окон
