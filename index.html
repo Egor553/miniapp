@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>StarsBuy Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -16,16 +16,22 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         .container {
             text-align: center;
             z-index: 1;
+            padding: 20px;
+            box-sizing: border-box;
         }
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
+            word-break: break-word;
         }
         .button {
             background: #8b00ff;
@@ -38,6 +44,7 @@
             margin: 10px 0;
             box-shadow: 0 0 10px #8b00ff;
             transition: transform 0.1s;
+            display: inline-block;
         }
         .button:active {
             transform: scale(0.95);
@@ -55,6 +62,10 @@
         }
         .links a:hover {
             text-decoration: underline;
+        }
+        /* Hide any unexpected elements injected by Telegram */
+        .links ~ div, .links ~ span, .links ~ p {
+            display: none !important;
         }
         .bot-name {
             font-size: 14px;
@@ -92,6 +103,7 @@
             position: relative;
             box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #8b00ff;
             border: 2px solid #ff00ff;
+            box-sizing: border-box;
         }
         .modal-content h2 {
             font-size: 18px;
@@ -173,32 +185,69 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-
-        // Функция для открытия чата с ботом и выполнения команды /start с уникальным параметром
-        function openChat() {
-            const timestamp = Date.now(); // Уникальная временная метка
-            tg.openTelegramLink(`https://t.me/stars_storee_bot?start=reset_${timestamp}`);
+        // Initialize Telegram Web App with error handling
+        let tg;
+        try {
+            tg = window.Telegram.WebApp;
+            if (tg) {
+                tg.ready();
+                console.log("Telegram Web App initialized successfully");
+            } else {
+                console.error("Telegram Web App SDK not loaded");
+            }
+        } catch (error) {
+            console.error("Error initializing Telegram Web App:", error);
         }
 
-        // Функции для отображения модальных окон
+        // Function to open chat with the bot
+        function openChat() {
+            try {
+                if (!tg) {
+                    console.error("Telegram Web App not available");
+                    alert("Не удалось открыть чат. Пожалуйста, попробуйте снова.");
+                    return;
+                }
+                const timestamp = Date.now(); // Unique timestamp
+                const url = `https://t.me/stars_storee_bot?start=reset_${timestamp}`;
+                tg.openTelegramLink(url);
+                console.log("Opening chat with URL:", url);
+            } catch (error) {
+                console.error("Error opening chat:", error);
+                alert("Произошла ошибка при открытии чата.");
+            }
+        }
+
+        // Functions to display modals
         function showRules() {
-            switchLanguage('rules', 'ru'); // По умолчанию показываем на русском
-            document.getElementById('rulesModal').style.display = 'block';
+            try {
+                switchLanguage('rules', 'ru'); // Default to Russian
+                document.getElementById('rulesModal').style.display = 'block';
+                console.log("Rules modal opened");
+            } catch (error) {
+                console.error("Error showing rules modal:", error);
+            }
         }
 
         function showPrivacy() {
-            switchLanguage('privacy', 'ru'); // По умолчанию показываем на русском
-            document.getElementById('privacyModal').style.display = 'block';
+            try {
+                switchLanguage('privacy', 'ru'); // Default to Russian
+                document.getElementById('privacyModal').style.display = 'block';
+                console.log("Privacy modal opened");
+            } catch (error) {
+                console.error("Error showing privacy modal:", error);
+            }
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+            try {
+                document.getElementById(modalId).style.display = 'none';
+                console.log(`${modalId} closed`);
+            } catch (error) {
+                console.error(`Error closing modal ${modalId}:`, error);
+            }
         }
 
-        // Контент на двух языках
+        // Content in two languages
         const content = {
             rules: {
                 ru: `
@@ -394,44 +443,73 @@
             }
         };
 
-        // Функция для переключения языка
+        // Function to switch language
         function switchLanguage(section, lang) {
-            // Обновляем контент
-            document.getElementById(`${section}-content`).innerHTML = content[section][lang];
-
-            // Обновляем активный язык в переключателе
-            document.getElementById(`${section}-lang-en`).classList.remove('active');
-            document.getElementById(`${section}-lang-ru`).classList.remove('active');
-            document.getElementById(`${section}-lang-${lang}`).classList.add('active');
-        }
-
-        // Анимация падающих шариков
-        function createBall() {
-            const ball = document.createElement('div');
-            ball.className = 'ball';
-            ball.style.left = Math.random() * window.innerWidth + 'px';
-            ball.style.top = '-10px';
-            document.body.appendChild(ball);
-
-            let position = -10;
-            const speed = Math.random() * 2 + 1;
-
-            function fall() {
-                position += speed;
-                ball.style.top = position + 'px';
-
-                if (position < window.innerHeight) {
-                    requestAnimationFrame(fall);
+            try {
+                const contentElement = document.getElementById(`${section}-content`);
+                if (contentElement) {
+                    contentElement.innerHTML = content[section][lang];
                 } else {
-                    ball.remove();
+                    console.error(`Content element for ${section} not found`);
                 }
-            }
 
-            requestAnimationFrame(fall);
+                // Update active language in the switcher
+                const langEn = document.getElementById(`${section}-lang-en`);
+                const langRu = document.getElementById(`${section}-lang-ru`);
+                if (langEn && langRu) {
+                    langEn.classList.remove('active');
+                    langRu.classList.remove('active');
+                    document.getElementById(`${section}-lang-${lang}`).classList.add('active');
+                } else {
+                    console.error(`Language switcher elements for ${section} not found`);
+                }
+            } catch (error) {
+                console.error(`Error switching language for ${section}:`, error);
+            }
         }
 
-        // Создаем шарики каждые 200ms
-        setInterval(createBall, 200);
+        // Optimized falling balls animation
+        let ballCount = 0;
+        const maxBalls = 50; // Limit the number of balls to prevent performance issues
+        function createBall() {
+            if (ballCount >= maxBalls) return; // Skip if too many balls
+
+            try {
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                ball.style.left = Math.random() * window.innerWidth + 'px';
+                ball.style.top = '-10px';
+                document.body.appendChild(ball);
+                ballCount++;
+
+                let position = -10;
+                const speed = Math.random() * 2 + 1;
+
+                function fall() {
+                    position += speed;
+                    ball.style.top = position + 'px';
+
+                    if (position < window.innerHeight) {
+                        requestAnimationFrame(fall);
+                    } else {
+                        ball.remove();
+                        ballCount--;
+                    }
+                }
+
+                requestAnimationFrame(fall);
+            } catch (error) {
+                console.error("Error in ball animation:", error);
+            }
+        }
+
+        // Create balls every 500ms (reduced frequency for better performance)
+        setInterval(createBall, 500);
+
+        // Log when the page is fully loaded
+        window.addEventListener('load', () => {
+            console.log("Page fully loaded");
+        });
     </script>
 </body>
 </html>
